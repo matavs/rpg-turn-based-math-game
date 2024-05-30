@@ -38,6 +38,9 @@ green = (0, 255, 0)
 panel_img = pygame.image.load('rpgimages/panel/work.png')
 panelscale = pygame.transform.scale(panel_img, (800, 150))
 
+# restart and main menu img 
+restartimg = pygame.transform.scale(panel_img, (800, 150))
+
 # Load victory or defeat
 defeat = pygame.image.load('rpgimages/gameover screen/gameover.png')
 defeatscale = pygame.transform.scale(defeat, (500, 500))
@@ -49,6 +52,11 @@ BG = pygame.image.load("assets/Background.png")
 
 def get_font(size): # Returns Press-Start-2P in the desired size
     return pygame.font.Font("assets/font.ttf", size)
+
+def strengthE(current_strength=[10]):
+    # Modify the value of current_strength
+    current_strength[0] += 1
+current_strength = [10]
 
 def play():
 
@@ -165,6 +173,13 @@ def play():
             self.action = 1
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
+        
+        def reset(self):
+            self.alive = True
+            self.hp = self.max_hp
+            self.frame_index = 0
+            self.action = 0
+
 
         def draw(self):
             screen.blit(self.image, self.rect)
@@ -184,9 +199,10 @@ def play():
             pygame.draw.rect(screen, red, (self.x, self.y, 150, 20))
             pygame.draw.rect(screen, green, (self.x, self.y, 150 * ratio, 20))
 
+
     # Class fighter (x, y, name, health, strenght)
-    knight = Fighter(200, 260, 'MC', 100, 10)
-    bandit1 = Fighter(590, 230, 'skeleton', 100, 10)
+    knight = Fighter(200, 260, 'MC', 100, 31)
+    bandit1 = Fighter(590, 230, 'skeleton', 100, current_strength[0])
 
     bandit_list = []
     bandit_list.append(bandit1)
@@ -196,6 +212,12 @@ def play():
 
     # Define initial math problem
     math_problem = generate_math_problem()
+
+    
+    # Buttons for game
+    restart_button = Button(image=pygame.image.load("assets/bt21.png"), pos=(330, 120), 
+                            text_input="QUIT", font=get_font(20), base_color="#d7fcd4", hovering_color="White", size=(120, 30))
+
 
     while True:
         UI_REFRESH_RATE = clock.tick(60)/1000
@@ -231,11 +253,29 @@ def play():
         display_math_problem()
 
         # Display gameover
+        GAME_MOUSE_POS = pygame.mouse.get_pos()
         if gameover != 0:
+            restart_button = Button(image=pygame.image.load("assets/bt21.png"), pos=(300, 120), 
+                            text_input="RESTART", font=get_font(20), base_color="#d7fcd4", hovering_color="White", size=(190, 30))
+            main_menu_button = Button(image=pygame.image.load("assets/bt21.png"), pos=(510, 120), 
+                            text_input="MAIN MENU", font=get_font(20), base_color="#d7fcd4", hovering_color="White", size=(200, 30))
+            for button in [restart_button, main_menu_button]:
+                button.changeColor(GAME_MOUSE_POS)
+                button.update(screen)
             if gameover == 1:
                 screen.blit(victory1scale, (350, 100))
             if gameover == -1:
-                screen.blit(defeatscale, (150, 30))
+                screen.blit(defeatscale, (150, 30))           
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restart_button.checkForInput(GAME_MOUSE_POS):
+                    knight.reset()
+                    bandit1.reset()
+                    gameover = 0
+                if main_menu_button.checkForInput(GAME_MOUSE_POS):
+                    main_menu()
+            
+
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -271,17 +311,23 @@ def options():
     while True:
         OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
 
-        screen.fill("white")
+        screen.blit(BG, (0, 0))
 
-        OPTIONS_TEXT = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-        OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
-        screen.blit(OPTIONS_TEXT, OPTIONS_RECT)
-
-        OPTIONS_BACK = Button(image=None, pos=(640, 460), 
-                            text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
+        OPTIONS_BACK = Button(image=pygame.image.load("assets/bt21.png"), pos=(640, 460), 
+                            text_input="BACK", font=get_font(20), base_color="Black", hovering_color="Green", size=(100, 50) )
+        
+        EASY_BUTTON = Button(image=pygame.image.load("assets/bt21.png"), pos=(300, 200), 
+                            text_input="EASY", font=get_font(25), base_color="#d7fcd4", hovering_color="White", size=(170, 70))
+        NORMAL_BUTTON = Button(image=pygame.image.load("assets/bt21.png"), pos=(300, 300), 
+                            text_input="NORMAL", font=get_font(25), base_color="#d7fcd4", hovering_color="White", size=(170, 70))
+        HARD_BUTTON = Button(image=pygame.image.load("assets/bt21.png"), pos=(300, 400), 
+                            text_input="HARD", font=get_font(25), base_color="#d7fcd4", hovering_color="White", size=(170, 70))
 
         OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
         OPTIONS_BACK.update(screen)
+        for button in [EASY_BUTTON, NORMAL_BUTTON, HARD_BUTTON]:
+                button.changeColor(OPTIONS_MOUSE_POS)
+                button.update(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -290,7 +336,19 @@ def options():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
                     main_menu()
-
+                if EASY_BUTTON.checkForInput(OPTIONS_MOUSE_POS):
+                    current_strength [0] = 10
+                    strengthE(current_strength)
+                    print(current_strength[0]) 
+                if NORMAL_BUTTON.checkForInput(OPTIONS_MOUSE_POS):
+                    current_strength [0] = 30
+                    strengthE(current_strength)
+                    print(current_strength[0])
+                if HARD_BUTTON.checkForInput(OPTIONS_MOUSE_POS):
+                    current_strength [0] = 60
+                    strengthE(current_strength)
+                    print(current_strength[0])
+            
         pygame.display.update()
 
 def main_menu():
