@@ -2,6 +2,7 @@ import random
 import pygame_gui
 import pygame, sys
 from button import Button
+from pygame import mixer
 
 pygame.init()
 
@@ -45,9 +46,11 @@ restartimg = pygame.transform.scale(panel_img, (800, 150))
 defeat = pygame.image.load('rpgimages/gameover screen/gameover.png')
 defeatscale = pygame.transform.scale(defeat, (500, 500))
 victory1 = pygame.image.load('rpgimages/gameover screen/victory.png')
-victory1scale = pygame.transform.scale(victory1, (100, 100))
+victory1scale = pygame.transform.scale(victory1, (600, 500))
 
-BG = pygame.image.load("assets/Background.png")
+#MainMenu BackGround
+BG1 = pygame.image.load("assets/Background.jpg")
+BG = pygame.transform.scale(BG1, (900, 800))
 
 
 def get_font(size): # Returns Press-Start-2P in the desired size
@@ -58,10 +61,19 @@ def strengthE(current_strength=[10]):
     current_strength[0] += 1
 current_strength = [10]
 
-def play():
+# Function to play main menu music
+def play_main_menu_music():
+    mixer.music.load('assets/music/main menu music.mp3')  # Load the music file
+    mixer.music.play(-1)  # Play the music on a loop
 
+def play_battle_music():
+    mixer.music.load('assets/music/battle music.mp3')  # Load the music file
+    mixer.music.play(-1)  # Play the music on a loop
+
+def play():
+    mixer.music.stop()
+    play_battle_music()
     # Define game variables
-    
     gameover = 0
 
         # Function for drawing text
@@ -70,9 +82,9 @@ def play():
         screen.blit(img, (x, y))
 
     def generate_math_problem():
-        num1 = random.randint(1, 5)
+        num1 = random.randint(5, 7)
         num2 = random.randint(1, 5)
-        operator = random.choice(['+', '*'])
+        operator = random.choice(['+', '*', "-"])
         problem = f"{num1} {operator} {num2}"
         solution = eval(problem)  # Evaluate the expression to get the solution
         return problem, solution
@@ -90,6 +102,7 @@ def play():
     def draw_background():
         screen.blit(backgroundscale, (0, 0))
 
+    #character attributes
     class Fighter():
         def __init__(self, x, y, name, max_hp, strength):
             self.name = name
@@ -201,7 +214,7 @@ def play():
 
 
     # Class fighter (x, y, name, health, strenght)
-    knight = Fighter(200, 260, 'MC', 100, 31)
+    knight = Fighter(200, 260, 'Hero', 100, 20)
     bandit1 = Fighter(590, 230, 'skeleton', 100, current_strength[0])
 
     bandit_list = []
@@ -218,7 +231,7 @@ def play():
     restart_button = Button(image=pygame.image.load("assets/bt21.png"), pos=(330, 120), 
                             text_input="QUIT", font=get_font(20), base_color="#d7fcd4", hovering_color="White", size=(120, 30))
 
-
+    
     while True:
         UI_REFRESH_RATE = clock.tick(60)/1000
 
@@ -263,9 +276,9 @@ def play():
                 button.changeColor(GAME_MOUSE_POS)
                 button.update(screen)
             if gameover == 1:
-                screen.blit(victory1scale, (350, 100))
+                screen.blit(victory1scale, (100, 50))
             if gameover == -1:
-                screen.blit(defeatscale, (150, 30))           
+                screen.blit(defeatscale, (150, 50))           
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if restart_button.checkForInput(GAME_MOUSE_POS):
                     knight.reset()
@@ -273,9 +286,6 @@ def play():
                     gameover = 0
                 if main_menu_button.checkForInput(GAME_MOUSE_POS):
                     main_menu()
-            
-
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -333,6 +343,7 @@ def options():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            #difficulty
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
                     main_menu()
@@ -351,8 +362,11 @@ def options():
             
         pygame.display.update()
 
-def main_menu():
+
+def main_menu():   
+    play_main_menu_music()
     while True:
+        
         screen.blit(BG, (0, 0))
 
         MENU_MOUSE_POS = pygame.mouse.get_pos()
@@ -363,7 +377,7 @@ def main_menu():
         PLAY_BUTTON = Button(image=pygame.image.load("assets/bt21.png"), pos=(380, 290), 
                             text_input="PLAY", font=get_font(20), base_color="#d7fcd4", hovering_color="White", size=(200, 100))
         OPTIONS_BUTTON = Button(image=pygame.image.load("assets/bt21.png"), pos=(380, 390), 
-                            text_input="OPTIONS", font=get_font(15), base_color="#d7fcd4", hovering_color="White", size=(200, 100))
+                            text_input="DIFFICULTY", font=get_font(15), base_color="#d7fcd4", hovering_color="White", size=(200, 100))
         QUIT_BUTTON = Button(image=pygame.image.load("assets/bt21.png"), pos=(380, 490), 
                             text_input="QUIT", font=get_font(20), base_color="#d7fcd4", hovering_color="White", size=(200, 100))
 
@@ -375,6 +389,7 @@ def main_menu():
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                mixer.music.stop()
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
